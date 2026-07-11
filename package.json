@@ -1,0 +1,27 @@
+{
+  "name": "github-trending-explorer",
+  "version": "1.0.0",
+  "description": "A search engine for trending GitHub repositories, abstracting away the complexity of low-lever readme files and producing high level synopsis.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuartbrowning2005/github-trending-explorer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/stuartbrowning2005/github-trending-explorer/issues"
+  },
+  "homepage": "https://github.com/stuartbrowning2005/github-trending-explorer#readme",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2"
+  }
+}

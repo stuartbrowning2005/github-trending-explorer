@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub Trending Explorer</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --star: #e3b341;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 40px 20px 80px;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  #refresh-btn {
+    position: absolute;
+    right: 0;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  #refresh-btn:hover:not(:disabled) {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  #refresh-btn:disabled {
+    color: #484f58;
+    cursor: not-allowed;
+  }
+
+  .status {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .repo-name {
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .repo-name:hover {
+    text-decoration: underline;
+  }
+
+  .meta {
+    display: flex;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .stars::before {
+    content: "★ ";
+    color: var(--star);
+  }
+
+  .description {
+    margin: 10px 0 0;
+    color: var(--text);
+    font-size: 14px;
+  }
+
+  .summary {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .summary-label {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  .error {
+    text-align: center;
+    color: #f85149;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>GitHub Trending Explorer</h1>
+      <button id="refresh-btn">↻ Refresh</button>
+    </div>
+    <div id="status" class="status"></div>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const btn = document.getElementById("refresh-btn");
+    const statusEl = document.getElementById("status");
+    const resultsEl = document.getElementById("results");
+
+    function stripSummaryHeading(text) {
+      if (!text) return text;
+      return text
+        .split("\n")
+        .filter((line) => !/^\s*#/.test(line))
+        .join("\n")
+        .trim();
+    }
+
+    function renderCard(repo) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const summaryHtml = repo.summary
+        ? `<div class="summary"><span class="summary-label">Summary:</span>${stripSummaryHeading(repo.summary)}</div>`
+        : `<div class="summary"><span class="summary-label">Summary:</span>Not available</div>`;
+
+      card.innerHTML = `
+        <div class="card-header">
+          <a class="repo-name" href="${repo.url}" target="_blank" rel="noopener noreferrer">${repo.name}</a>
+          <div class="meta">
+            <span class="stars">${repo.stars.toLocaleString()}</span>
+            <span class="language">${repo.language || "—"}</span>
+          </div>
+        </div>
+        <p class="description">${repo.description || ""}</p>
+        ${summaryHtml}
+      `;
+      return card;
+    }
+
+    async function loadTrending() {
+      btn.disabled = true;
+      statusEl.textContent = "Fetching trending repos and generating summaries...";
+      resultsEl.innerHTML = "";
+
+      try {
+        const res = await fetch("http://localhost:3001/api/trending");
+        if (!res.ok) {
+          throw new Error(`Request failed with status ${res.status}`);
+        }
+        const repos = await res.json();
+        statusEl.textContent = "";
+        repos.forEach((repo) => resultsEl.appendChild(renderCard(repo)));
+      } catch (err) {
+        statusEl.innerHTML = `<span class="error">Failed to load trending repos: ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener("click", loadTrending);
+    loadTrending();
+  </script>
+</body>
+</html>
