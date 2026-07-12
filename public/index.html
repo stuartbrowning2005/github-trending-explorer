@@ -6,13 +6,14 @@
 <title>GitHub Trending Explorer</title>
 <style>
   :root {
-    --bg: #0d1117;
-    --bg-card: #161b22;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --text-muted: #8b949e;
-    --accent: #58a6ff;
-    --star: #e3b341;
+    --bg: #faf6ee;
+    --bg-card: #ffffff;
+    --border: #ece3d3;
+    --text: #2b2620;
+    --text-muted: #8a8172;
+    --accent: #c05621;
+    --star: #d69e2e;
+    --shadow: rgba(60, 47, 21, 0.08);
   }
 
   * { box-sizing: border-box; }
@@ -21,20 +22,13 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    padding: 40px 20px 80px;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    padding: 56px 20px 100px;
   }
 
   .container {
-    max-width: 800px;
+    max-width: 720px;
     margin: 0 auto;
-  }
-
-  h1 {
-    font-size: 28px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 24px;
   }
 
   .header {
@@ -42,7 +36,15 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.02em;
+    margin: 0;
   }
 
   #refresh-btn {
@@ -51,48 +53,164 @@
     background: transparent;
     color: var(--text-muted);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 12px;
+    border-radius: 8px;
+    padding: 7px 14px;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
+    font-family: inherit;
   }
 
   #refresh-btn:hover:not(:disabled) {
     color: var(--text);
-    border-color: var(--text-muted);
+    border-color: var(--accent);
   }
 
   #refresh-btn:disabled {
-    color: #484f58;
+    color: #cabfa8;
     cursor: not-allowed;
+  }
+
+  .view-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  .view-toggle button {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .view-toggle button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .view-toggle button:not(.active):hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .search-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  #search-input {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  #search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  #search-input::placeholder {
+    color: var(--text-muted);
   }
 
   .status {
     text-align: center;
     color: var(--text-muted);
-    margin-bottom: 20px;
+    margin-bottom: 28px;
+    font-size: 15px;
   }
 
   .card {
     background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px var(--shadow);
   }
 
-  .card-header {
+  .headline {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+  }
+
+  .summary {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #4a4238;
+    margin: 0 0 20px;
+  }
+
+  .meta-row {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px 14px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .meta-row .spacer {
+    flex: 1;
+  }
+
+  .save-btn,
+  .remove-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-muted);
+  }
+
+  .save-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .save-btn.saved {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .remove-btn:hover {
+    border-color: #c0362c;
+    color: #c0362c;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 60px 20px;
   }
 
   .repo-name {
     color: var(--accent);
-    font-size: 18px;
     font-weight: 600;
     text-decoration: none;
   }
@@ -101,12 +219,10 @@
     text-decoration: underline;
   }
 
-  .meta {
-    display: flex;
-    gap: 16px;
-    color: var(--text-muted);
-    font-size: 13px;
-    white-space: nowrap;
+  .dot::before {
+    content: "•";
+    margin-right: 14px;
+    color: var(--border);
   }
 
   .stars::before {
@@ -114,30 +230,38 @@
     color: var(--star);
   }
 
-  .description {
-    margin: 10px 0 0;
-    color: var(--text);
-    font-size: 14px;
-  }
-
-  .summary {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    color: var(--text-muted);
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  .summary-label {
-    color: var(--text);
-    font-weight: 600;
-    margin-right: 6px;
-  }
-
   .error {
     text-align: center;
-    color: #f85149;
+    color: #c0362c;
+  }
+
+  .load-more-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  #load-more-btn {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  #load-more-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  #load-more-btn:disabled {
+    color: #cabfa8;
+    border-color: var(--border);
+    cursor: not-allowed;
   }
 </style>
 </head>
@@ -147,14 +271,38 @@
       <h1>GitHub Trending Explorer</h1>
       <button id="refresh-btn">↻ Refresh</button>
     </div>
+    <div class="view-toggle">
+      <button id="discover-tab" class="active">Discover</button>
+      <button id="library-tab">Library</button>
+    </div>
+    <div class="search-row">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search trending repos (e.g. &quot;llm agents&quot;)"
+      />
+    </div>
     <div id="status" class="status"></div>
     <div id="results"></div>
+    <div class="load-more-row">
+      <button id="load-more-btn">Load More</button>
+    </div>
   </div>
 
   <script>
     const btn = document.getElementById("refresh-btn");
+    const loadMoreBtn = document.getElementById("load-more-btn");
+    const discoverTab = document.getElementById("discover-tab");
+    const libraryTab = document.getElementById("library-tab");
+    const searchInput = document.getElementById("search-input");
+    const searchRow = document.querySelector(".search-row");
     const statusEl = document.getElementById("status");
     const resultsEl = document.getElementById("results");
+
+    const LIBRARY_KEY = "library";
+    let currentPage = 1;
+    let currentView = "discover";
+    let currentQuery = "";
 
     function stripSummaryHeading(text) {
       if (!text) return text;
@@ -165,49 +313,181 @@
         .trim();
     }
 
-    function renderCard(repo) {
+    function getLibrary() {
+      try {
+        const raw = localStorage.getItem(LIBRARY_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (err) {
+        console.error("Failed to read library from localStorage:", err);
+        return [];
+      }
+    }
+
+    function setLibrary(repos) {
+      localStorage.setItem(LIBRARY_KEY, JSON.stringify(repos));
+    }
+
+    function isSaved(url) {
+      return getLibrary().some((r) => r.url === url);
+    }
+
+    function saveToLibrary(repo) {
+      const library = getLibrary();
+      if (library.some((r) => r.url === repo.url)) return;
+      library.push({
+        name: repo.name,
+        url: repo.url,
+        language: repo.language,
+        stars: repo.stars,
+        headline: repo.headline,
+        summary: repo.summary,
+      });
+      setLibrary(library);
+    }
+
+    function removeFromLibrary(url) {
+      setLibrary(getLibrary().filter((r) => r.url !== url));
+    }
+
+    function renderCard(repo, options = {}) {
+      const { mode = "discover" } = options;
       const card = document.createElement("div");
       card.className = "card";
 
-      const summaryHtml = repo.summary
-        ? `<div class="summary"><span class="summary-label">Summary:</span>${stripSummaryHeading(repo.summary)}</div>`
-        : `<div class="summary"><span class="summary-label">Summary:</span>Not available</div>`;
+      const headline = repo.headline || repo.name;
+      const summary = repo.summary
+        ? stripSummaryHeading(repo.summary)
+        : "No summary available.";
+
+      const actionButton =
+        mode === "library"
+          ? `<button class="remove-btn" data-url="${repo.url}">Remove</button>`
+          : `<button class="save-btn${isSaved(repo.url) ? " saved" : ""}" data-url="${repo.url}">${
+              isSaved(repo.url) ? "♥ Saved" : "♡ Save"
+            }</button>`;
 
       card.innerHTML = `
-        <div class="card-header">
+        <h2 class="headline">${headline}</h2>
+        <p class="summary">${summary}</p>
+        <div class="meta-row">
           <a class="repo-name" href="${repo.url}" target="_blank" rel="noopener noreferrer">${repo.name}</a>
-          <div class="meta">
-            <span class="stars">${repo.stars.toLocaleString()}</span>
-            <span class="language">${repo.language || "—"}</span>
-          </div>
+          <span class="dot">${repo.language || "—"}</span>
+          <span class="stars">${repo.stars.toLocaleString()}</span>
+          <span class="spacer"></span>
+          ${actionButton}
         </div>
-        <p class="description">${repo.description || ""}</p>
-        ${summaryHtml}
       `;
+
+      if (mode === "library") {
+        card.querySelector(".remove-btn").addEventListener("click", () => {
+          removeFromLibrary(repo.url);
+          renderLibrary();
+        });
+      } else {
+        const saveBtn = card.querySelector(".save-btn");
+        saveBtn.addEventListener("click", () => {
+          if (isSaved(repo.url)) {
+            removeFromLibrary(repo.url);
+            saveBtn.classList.remove("saved");
+            saveBtn.textContent = "♡ Save";
+          } else {
+            saveToLibrary(repo);
+            saveBtn.classList.add("saved");
+            saveBtn.textContent = "♥ Saved";
+          }
+        });
+      }
+
       return card;
     }
 
+    function renderLibrary() {
+      resultsEl.innerHTML = "";
+      const library = getLibrary();
+      if (library.length === 0) {
+        resultsEl.innerHTML = `<div class="empty-state">No saved repos yet — hit save on anything you like.</div>`;
+        return;
+      }
+      library.forEach((repo) => resultsEl.appendChild(renderCard(repo, { mode: "library" })));
+    }
+
+    function setView(view) {
+      currentView = view;
+      discoverTab.classList.toggle("active", view === "discover");
+      libraryTab.classList.toggle("active", view === "library");
+      btn.style.display = view === "discover" ? "" : "none";
+      loadMoreBtn.parentElement.style.display = view === "discover" ? "" : "none";
+      searchRow.style.display = view === "discover" ? "" : "none";
+      statusEl.textContent = "";
+
+      if (view === "library") {
+        renderLibrary();
+      } else {
+        loadTrending();
+      }
+    }
+
+    async function fetchPage(page) {
+      const params = new URLSearchParams({ page });
+      if (currentQuery) params.set("q", currentQuery);
+      const res = await fetch(`http://localhost:3001/api/trending?${params}`);
+      if (!res.ok) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+      return res.json();
+    }
+
     async function loadTrending() {
+      currentPage = 1;
       btn.disabled = true;
-      statusEl.textContent = "Fetching trending repos and generating summaries...";
+      loadMoreBtn.disabled = true;
+      statusEl.textContent = currentQuery
+        ? `Searching for "${currentQuery}"...`
+        : "Fetching trending repos and generating summaries...";
       resultsEl.innerHTML = "";
 
       try {
-        const res = await fetch("http://localhost:3001/api/trending");
-        if (!res.ok) {
-          throw new Error(`Request failed with status ${res.status}`);
-        }
-        const repos = await res.json();
+        const repos = await fetchPage(currentPage);
         statusEl.textContent = "";
         repos.forEach((repo) => resultsEl.appendChild(renderCard(repo)));
       } catch (err) {
         statusEl.innerHTML = `<span class="error">Failed to load trending repos: ${err.message}</span>`;
       } finally {
         btn.disabled = false;
+        loadMoreBtn.disabled = false;
+      }
+    }
+
+    async function loadMore() {
+      loadMoreBtn.disabled = true;
+      loadMoreBtn.textContent = "Loading...";
+      statusEl.textContent = "Fetching more repos and generating summaries...";
+
+      try {
+        const nextPage = currentPage + 1;
+        const repos = await fetchPage(nextPage);
+        currentPage = nextPage;
+        statusEl.textContent = "";
+        repos.forEach((repo) => resultsEl.appendChild(renderCard(repo)));
+      } catch (err) {
+        statusEl.innerHTML = `<span class="error">Failed to load more repos: ${err.message}</span>`;
+      } finally {
+        loadMoreBtn.disabled = false;
+        loadMoreBtn.textContent = "Load More";
       }
     }
 
     btn.addEventListener("click", loadTrending);
+    loadMoreBtn.addEventListener("click", loadMore);
+    discoverTab.addEventListener("click", () => setView("discover"));
+    libraryTab.addEventListener("click", () => setView("library"));
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        currentQuery = searchInput.value.trim();
+        loadTrending();
+      }
+    });
+
     loadTrending();
   </script>
 </body>

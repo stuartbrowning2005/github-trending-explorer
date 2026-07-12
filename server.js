@@ -18,45 +18,26 @@ const GITHUB_HEADERS = {
   ...(GITHUB_TOKEN ? { Authorization: `Bearer ${GITHUB_TOKEN}` } : {}),
 };
 
-const WINDOW_OPTIONS_DAYS = [3, 7, 14, 30];
-const LANGUAGE_OPTIONS = [
-  null,
-  "JavaScript",
-  "TypeScript",
-  "Python",
-  "Go",
-  "Rust",
-  "Java",
-  "C++",
-];
-
-function pickRandom(options) {
-  return options[Math.floor(Math.random() * options.length)];
-}
-
-async function fetchTrendingRepos() {
-  const windowDays = pickRandom(WINDOW_OPTIONS_DAYS);
-  const language = pickRandom(LANGUAGE_OPTIONS);
-
+async function fetchTrendingRepos(page, keyword) {
   const since = new Date();
-  since.setDate(since.getDate() - windowDays);
+  since.setDate(since.getDate() - 7);
   const sinceStr = since.toISOString().split("T")[0];
 
   let query = `stars:>100 created:>${sinceStr}`;
-  if (language) {
-    query += ` language:${language}`;
+  if (keyword) {
+    query = `${keyword} in:name,description,topics ${query}`;
   }
   const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(
     query
-  )}&sort=stars&order=desc&per_page=10`;
+  )}&sort=stars&order=desc&per_page=10&page=${page}`;
 
-  console.log(`[trending] fetching top repos with query: ${query}`);
+  console.log(`[trending] fetching page ${page} with query: ${query}`);
   const res = await fetch(url, { headers: GITHUB_HEADERS });
   if (!res.ok) {
     throw new Error(`GitHub search API failed: ${res.status} ${res.statusText}`);
   }
   const data = await res.json();
-  console.log(`[trending] found ${data.items.length} repos`);
+  console.log(`[trending] found ${data.items.length} repos on page ${page}`);
   return data.items;
 }
 
@@ -81,17 +62,34 @@ async function summarizeReadme(fullName, readmeText) {
     messages: [
       {
         role: "user",
-        content: `Here is the README for the GitHub repository "${fullName}":\n\n${truncated}\n\nYou're texting a developer friend about a trending GitHub repo. In ONE sentence, max 25 words, tell them what it is and whether it's actually interesting. Be blunt and casual — the way you'd text, not a product description. You're allowed to be dismissive if it's derivative ('another X, but nothing special') and hyped if it's genuinely cool. No marketing voice, no 'this project,' no hedging, no markdown. Just the take.`,
+        content: `Here is the README for the GitHub repository "${fullName}":\n\n${truncated}\n\nProduce two things about this repo:\n\n1. "headline": A plain-language, product-minded title of what the repo lets you DO. Max 8 words. No jargon, no repo name. Think Product Hunt tagline. Example: for an Amazon fake-brand filter, "Catch fake Amazon brands automatically."\n\n2. "summary": You're texting a developer friend about a trending GitHub repo. In ONE sentence, max 25 words, tell them what it is and whether it's actually interesting. Be blunt and casual — the way you'd text, not a product description. You're allowed to be dismissive if it's derivative ('another X, but nothing special') and hyped if it's genuinely cool. No marketing voice, no 'this project,' no hedging, no markdown. Just the take.\n\nRespond with ONLY a JSON object in this exact shape, no markdown fences, no preamble: {"headline": "...", "summary": "..."}`,
       },
     ],
   });
   const textBlock = message.content.find((block) => block.type === "text");
-  return textBlock ? textBlock.text.trim() : null;
+  if (!textBlock) {
+    return { headline: null, summary: null };
+  }
+
+  const raw = textBlock.text.trim();
+  try {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+    return {
+      headline: typeof parsed.headline === "string" ? parsed.headline.trim() : null,
+      summary: typeof parsed.summary === "string" ? parsed.summary.trim() : null,
+    };
+  } catch (err) {
+    console.log(`[summary] failed to parse JSON for ${fullName}: ${err.message}`);
+    return { headline: null, summary: raw };
+  }
 }
 
 app.get("/api/trending", async (req, res) => {
   try {
-    const repos = await fetchTrendingRepos();
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const keyword = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    const repos = await fetchTrendingRepos(page, keyword);
 
     const results = await Promise.all(
       repos.map(async (repo) => {
@@ -107,14 +105,14 @@ app.get("/api/trending", async (req, res) => {
           const [owner, name] = repo.full_name.split("/");
           const readme = await fetchReadme(owner, name);
           if (!readme) {
-            return { ...base, summary: null };
+            return { ...base, headline: null, summary: null };
           }
-          const summary = await summarizeReadme(repo.full_name, readme);
+          const { headline, summary } = await summarizeReadme(repo.full_name, readme);
           console.log(`[trending] done: ${repo.full_name}`);
-          return { ...base, summary };
+          return { ...base, headline: headline || repo.full_name, summary };
         } catch (err) {
           console.log(`[trending] failed to summarize ${repo.full_name}: ${err.message}`);
-          return { ...base, summary: null };
+          return { ...base, headline: repo.full_name, summary: null };
         }
       })
     );
